@@ -5,24 +5,58 @@ const { ApolloServer, gql } = require('apollo-server');
 // from an existing data source like a REST API or database.
 const books = [
   {
+    id: 1,
     title: 'Harry Potter and the Chamber of Secrets',
-    author: 'J.K. Rowling',
+    authorId: 2,
   },
   {
+    id: 2,
     title: 'Jurassic Park',
-    author: 'Michael Crichton',
+    authorId: 1,
   },
 ];
+
+const authors = [
+  {
+    id: 1,
+    name: 'Michael Crichton'
+  },
+  {
+    id: 2,
+    name: 'J.K. Rowling',
+    age: 53
+  }
+]
 
 // Type definitions define the "shape" of your data and specify
 // which ways the data can be fetched from the GraphQL server.
 const typeDefs = gql`
   # Comments in GraphQL are defined with the hash (#) symbol.
 
-  # This "Book" type can be used in other type declarations.
+  # Triple quotes in a schema denote a docstring that will appear in the
+  # playground alongside the schema. Markdown is fully supported!
+  
+  """
+  Books are essential to learning and human culture.
+  They have existed for _thousands_ of years in one form or another.
+  More information can be found on [Wikipedia](https://en.wikipedia.org/wiki/Book#Etymology).
+  """
   type Book {
+    id: ID!
+    """
+    The often-times misleading name of the book
+    """
     title: String
-    author: String
+    """
+    The human being who wrote the book
+    """
+    author: Person
+  }
+
+  type Person {
+    id: ID!
+    name: String!
+    age: Int
   }
 
   # The "Query" type is the root of all GraphQL queries.
@@ -38,6 +72,14 @@ const resolvers = {
   Query: {
     books: () => books,
   },
+  
+  Book: {
+    // Parent in GraphQL means "thing that called this"
+    // so the author field is nested in "Book", making it the parent
+    author: (parent) => {
+      return authors.find(author => author.id === parent.authorId);
+    }
+  }
 };
 
 // In the most basic sense, the ApolloServer can be started
